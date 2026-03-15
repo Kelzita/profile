@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Profile</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=VT323&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap');
+
+  :root {
+    --bg:        #120e1a;
+    --grid:      rgba(140, 80, 200, 0.12);
+    --win-bg:    rgba(22, 15, 35, 0.97);
+    --border:    #4a2d6a;
+    --border2:   #321e50;
+    --bar-bg:    #1c1130;
+    --bar-bg2:   #160d28;
+    --accent:    #c9a0dc;
+    --accent2:   #ebd4ff;
+    --muted:     #6a4a8a;
+    --text:      #d4b8e8;
+    --text-dim:  #9070b8;
+    --text-dark: #b89fd0;
+    --green:     #9fd8a8;
+    --pink:      #e8a8c8;
+    --progress:  #9050c0;
+    --input-bg:  #0e0818;
+    --hover:     #281540;
+    --badge-bg:  #4a1e78;
+    --badge-fg:  #ead5ff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background-color: var(--bg);
+    background-image:
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 12px 12px;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Courier Prime', monospace;
+    font-size: 12px;
+  }
+
+  .window {
+    width: 420px;
+    border: 1.5px dashed var(--border);
+    background: var(--win-bg);
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 0 40px rgba(160,80,240,0.12), 0 0 80px rgba(100,30,160,0.07);
+  }
+
+  .topbar {
+    background: var(--bar-bg);
+    border-bottom: 1px solid var(--border2);
+    padding: 4px 8px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .topbar-icons { display: flex; gap: 8px; color: var(--muted); font-size: 13px; }
+  .topbar-right { display: flex; align-items: center; gap: 6px; color: var(--muted); font-size: 11px; }
+  .time-badge {
+    background: var(--badge-bg); color: var(--badge-fg);
+    padding: 1px 7px; border-radius: 2px;
+    font-family: 'VT323', monospace; font-size: 14px; letter-spacing: 1px;
+    text-shadow: 0 0 8px rgba(220,160,255,0.5);
+  }
+  .topbar-right a { color: var(--muted); text-decoration: none; }
+  .topbar-right a:hover { color: var(--accent); text-decoration: underline; }
+
+  .nav {
+    background: var(--bar-bg2);
+    border-bottom: 1px solid var(--border2);
+    padding: 3px 8px;
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; color: var(--text-dim);
+  }
+  .nav a { color: var(--text-dim); text-decoration: none; cursor: pointer; }
+  .nav a:hover, .nav a.active { color: var(--accent2); text-decoration: underline; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .main {
+    display: grid;
+    grid-template-columns: 120px 1fr 110px;
+    border-bottom: 1px solid var(--border2);
+  }
+
+  .col-left { border-right: 1px solid var(--border2); padding: 8px; }
+  .profile-pic-placeholder {
+    width: 100%; aspect-ratio: 1;
+    background: linear-gradient(135deg, #200e38, #3a1860, #160a28);
+    border: 1px solid var(--border); margin-bottom: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 32px; color: rgba(200,150,255,0.35);
+    position: relative; overflow: hidden;
+  }
+  .profile-pic-placeholder img {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+    position: absolute; inset: 0;
+  }
+  .profile-pic-placeholder::after {
+    content: ''; position: absolute; inset: 0;
+    background: repeating-linear-gradient(0deg, transparent, transparent 3px,
+      rgba(140,60,220,0.05) 3px, rgba(140,60,220,0.05) 4px);
+    pointer-events: none;
+  }
+  .profile-name  { font-size: 10px; color: var(--accent); margin-bottom: 3px; }
+  .profile-meta  { font-size: 10px; color: var(--text-dim); line-height: 1.7; }
+  .online-dot {
+    display: inline-block; width: 6px; height: 6px;
+    background: rgb(233, 233, 233); border-radius: 50%; margin-right: 2px;
+    box-shadow: 0 0 4px rgba(160,220,160,0.55);
+  }
+
+  .col-mid { display: flex; flex-direction: column; }
+  .section-header {
+    background: var(--bar-bg); border-bottom: 1px solid var(--border2);
+    padding: 3px 8px; font-size: 10px;
+    color: var(--accent); text-align: center; letter-spacing: 0.5px;
+  }
+  .about-text { padding: 8px; font-size: 10px; color: var(--text); line-height: 1.7; flex: 1; }
+  .watching-bar {
+    border-top: 1px solid var(--border2); padding: 4px 8px;
+    font-size: 10px; color: var(--text-dim); background: var(--bar-bg2);
+  }
+  .watching-bar strong { color: var(--accent); }
+  .action-buttons { border-top: 1px solid var(--border2); display: flex; }
+  .action-btn {
+    flex: 1; padding: 5px 4px; font-size: 10px;
+    color: var(--text-dim); background: var(--bar-bg);
+    border: none; border-right: 1px solid var(--border2); cursor: pointer;
+    font-family: 'Courier Prime', monospace;
+    display: flex; align-items: center; justify-content: center; gap: 4px;
+    transition: background .15s, color .15s;
+  }
+  .action-btn:last-child { border-right: none; }
+  .action-btn:hover { background: var(--hover); color: var(--accent2); }
+
+  .col-right { border-left: 1px solid var(--border2); display: flex; flex-direction: column; }
+  .accounts-header {
+    background: var(--bar-bg); border-bottom: 1px solid var(--border2);
+    padding: 3px 6px; font-size: 10px;
+    color: var(--accent); text-align: center; line-height: 1.5;
+  }
+  .accounts-list { padding: 6px; flex: 1; }
+  .account-item {
+    font-size: 10px; color: var(--text-dark);
+    margin-bottom: 5px; display: flex; gap: 3px; line-height: 1.4;
+  }
+  .account-num { color: var(--muted); min-width: 12px; }
+  .account-item a { color: var(--text-dark); text-decoration: underline; text-underline-offset: 2px; }
+  .account-item a:hover { color: var(--accent2); }
+  .add-friends {
+    border-top: 1px solid var(--border2); padding: 5px 6px;
+    display: flex; align-items: center; gap: 4px; background: var(--bar-bg2);
+  }
+  .add-friends-label { font-size: 9px; color: var(--muted); flex: 1; }
+  .add-friends input {
+    width: 30px; border: 1px solid var(--border);
+    background: var(--input-bg); color: var(--text);
+    font-size: 9px; padding: 1px 3px;
+    font-family: 'Courier Prime', monospace; outline: none;
+  }
+  .add-friends-x     { font-size: 10px; color: var(--pink);  cursor: pointer; }
+  .add-friends-check { font-size: 10px; color: var(--green); cursor: pointer; }
+
+  .interests-grid {
+    padding: 10px 8px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .interest-card {
+    border: 1px solid var(--border2);
+    background: var(--bar-bg);
+    padding: 6px 8px;
+    border-radius: 3px;
+    font-size: 10px;
+    color: var(--text);
+    line-height: 1.5;
+    transition: border-color .15s, background .15s;
+  }
+  .interest-card:hover { border-color: var(--accent); background: var(--hover); }
+  .interest-card .ic-title {
+    color: var(--accent);
+    font-size: 10px;
+    margin-bottom: 3px;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .interest-card .ic-body { color: var(--text-dim); font-size: 9px; line-height: 1.5; }
+
+  .links-section { padding: 10px 8px; }
+  .links-title {
+    color: var(--accent); font-size: 10px;
+    margin-bottom: 8px; padding-bottom: 4px;
+    border-bottom: 1px solid var(--border2);
+    letter-spacing: 0.5px;
+  }
+  .link-row {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 0; border-bottom: 1px dashed var(--border2);
+    font-size: 10px;
+  }
+  .link-row:last-child { border-bottom: none; }
+  .link-icon { font-size: 14px; width: 20px; text-align: center; flex-shrink: 0; }
+  .link-info { flex: 1; }
+  .link-name { color: var(--accent2); margin-bottom: 1px; }
+  .link-desc { color: var(--text-dim); font-size: 9px; }
+  .link-btn {
+    background: var(--badge-bg); color: var(--badge-fg);
+    border: 1px solid var(--border); padding: 2px 8px;
+    font-size: 9px; font-family: 'Courier Prime', monospace;
+    cursor: pointer; border-radius: 2px;
+    text-decoration: none; display: inline-block;
+    transition: background .15s;
+  }
+  .link-btn:hover { background: var(--hover); color: var(--accent2); }
+
+  .footer {
+    border-bottom: 1px solid var(--border2);
+    padding: 4px 8px; display: flex; align-items: center; gap: 8px;
+    font-size: 10px; color: var(--text-dim); background: var(--bar-bg2);
+  }
+  .footer-website { flex: 1; color: var(--accent); }
+  .login-fields { display: flex; gap: 6px; align-items: center; }
+  .login-label { color: var(--muted); font-size: 10px; }
+  .login-input {
+    width: 55px; border: 1px solid var(--border);
+    background: var(--input-bg); color: var(--text);
+    font-size: 9px; padding: 1px 3px;
+    font-family: 'Courier Prime', monospace; outline: none;
+  }
+  .login-input:focus { border-color: var(--accent); }
+
+  .music-bar {
+    background: var(--bar-bg); border-bottom: 1px solid var(--border2);
+    padding: 4px 10px; display: flex; align-items: center; gap: 8px;
+    font-size: 10px; color: var(--text-dim);
+  }
+  .music-info { flex: 1; }
+  .music-info strong { color: var(--accent2); }
+  .music-progress { display: flex; align-items: center; gap: 5px; }
+  .progress-track { width: 60px; height: 3px; background: var(--border2); border-radius: 2px; overflow: hidden; }
+  .progress-fill {
+    height: 100%; width: 18%;
+    background: linear-gradient(90deg, var(--progress), var(--accent));
+    border-radius: 2px;
+    box-shadow: 0 0 6px rgba(180,90,255,0.45);
+    animation: prog 214s linear infinite;
+  }
+  @keyframes prog { from { width: 18%; } to { width: 100%; } }
+  .heart { color: var(--pink); }
+
+  .made-with {
+    padding: 4px 8px; text-align: center;
+    font-size: 10px; color: var(--muted);
+    font-style: italic; background: var(--bar-bg2);
+  }
+</style>
+</head>
+<body>
+
+<div class="window">
+
+  <div class="topbar">
+    <div class="topbar-icons">🏠 💬 📁 📞 📡</div>
+    <div class="topbar-right">
+      <span>Time :</span>
+      <span class="time-badge" id="clock">--:--:-- --</span>
+      <a href="#">Login</a> | <a href="https://discord.com/channels/@me">exit</a>
+    </div>
+  </div>
+
+  <div class="nav">
+    <span>Navigation:</span>
+    <a href="#" class="active" onclick="showPage('home',this)">Home</a> |
+    <a href="#" onclick="showPage('interests',this)">Interests</a> |
+    <a href="#" onclick="showPage('links',this)">Links</a>
+  </div>
+
+  <div id="page-home" class="page active">
+    <div class="main">
+
+      <div class="col-left">
+        <div class="profile-pic-placeholder"><img src="fpto.jpg"/></div>
+        <div class="profile-name">@Kel's profile ≡</div>
+        <div class="profile-meta">
+          <span class="online-dot"></span>Status: Invisible <br>
+        </div>
+        <div class="profile-meta">
+          <span></span>·♡ @.zsxb9nix ♡·<br>
+        </div>
+      </div>
+
+      <div class="col-mid">
+        <div class="section-header">♤ □ about me ! ".</div>
+        <div class="about-text">
+            Hi, I'm known as Kel, and I'm 18 years old. I enjoy programming, writing, and drawing, among other things... ♡
+        </div>
+        <div class="watching-bar"><strong>Mood:</strong> ✦ Busy ✦</div>
+      </div>
+
+      <div class="col-right">
+        <div class="accounts-header">ᵖ | My accounts |<br>≡</div>
+        <div class="accounts-list">
+          <div class="account-item">
+            <span class="account-num">1.</span>
+            <a href="#" onclick="showPage('links', document.querySelector('.nav a:nth-child(5)'))">Discord ↗</a>
+          </div>
+          <div class="account-item">
+            <span class="account-num">2.</span>
+            <a href="#" onclick="showPage('links', document.querySelector('.nav a:nth-child(5)'))">Tiktok ↗</a>
+          </div>
+        </div>
+        <div class="add-friends">
+          <span class="add-friends-label">Add friends ?</span>
+          <input type="text" maxlength="10">
+          <span class="add-friends-x">✕</span>
+          <span class="add-friends-check">✓</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div id="page-interests" class="page">
+    <div class="section-header" style="border-bottom:1px solid var(--border2);">✦ Interests ✦</div>
+    <div class="interests-grid">
+      <div class="interest-card">
+        <div class="ic-title">💻 Programming</div>
+        <div class="ic-body">Enjoy creating things from scratch, especially front-end and personal projects.</div>
+      </div>
+      <div class="interest-card">
+        <div class="ic-title">✍️ Writing</div>
+        <div class="ic-body">Stories, poems, loose thoughts at 2am.</div>
+      </div>
+      <div class="interest-card">
+        <div class="ic-title">🎨 Drawing</div>
+        <div class="ic-body">Digital art, sketches, characters.</div>
+      </div>
+      <div class="interest-card">
+        <div class="ic-title">🎵 Music</div>
+        <div class="ic-body">Every music touches my heart... ♡</div>
+      </div>
+      <div class="interest-card" style="grid-column:1/-1;">
+        <div class="ic-title">✦ Other things</div>
+        <div class="ic-body">Movies, series, being on the pc at 3am doing nothing and everything at the same time.</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="page-links" class="page">
+    <div class="section-header" style="border-bottom:1px solid var(--border2);">✦ links & contato ✦</div>
+    <div class="links-section">
+      <div class="links-title">♤ Onde me achar . . .</div>
+      <div class="link-row">
+        <div class="link-icon">🎮</div>
+        <div class="link-info">
+            <div class="link-name">Discord: l1l7z4bxi</div>
+            <div class="link-desc">Send me a message there!</div>
+            
+        </div>
+        <div class="link-icon">📱</div>
+        <div class="link-info">
+            <div class="link-name">Tik Tok: lillymel190</div>
+            <div class="link-desc">Follow me there!</div>
+    
+        </div>
+        <a href="https://www.tiktok.com/@lillymel190" class="link-btn">Abrir ↗</a>  
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-website">≡ Kel's website . . . ♡</div>
+    <div class="login-fields">
+      <span class="login-label">Username:</span>
+      <input class="login-input" type="text" readonly>
+      <span class="login-label">Password:</span>
+      <input class="login-input" type="password" readonly>
+    </div>
+  </div>
+
+  <div class="music-bar">
+    <div class="music-info"><strong>Music:</strong> Bohemian Rhapsody - Queens</div>
+    <div class="music-progress">
+      <span>0:42</span>
+      <div class="progress-track"><div class="progress-fill"></div></div>
+      <span class="heart">♡</span>
+      <span>3:34</span>
+    </div>
+  </div>
+
+  <div class="made-with">Made by me :)</div>
+
+</div>
+
+<script>
+  function updateClock() {
+    const now = new Date();
+    let h = now.getHours();
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const s = String(now.getSeconds()).padStart(2, '0');
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    document.getElementById('clock').textContent = `${h}:${m}:${s} ${ampm}`;
+  }
+  updateClock();
+  setInterval(updateClock, 1000); // ← atualiza a cada 1 segundo
+
+  function showPage(name, el) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav a').forEach(a => a.classList.remove('active'));
+    document.getElementById('page-' + name).classList.add('active');
+    if (el && el.classList) el.classList.add('active');
+    return false;
+  }
+
+  document.querySelectorAll('.nav a').forEach(a => {
+    a.addEventListener('click', function(e) {
+      e.preventDefault();
+    });
+  });
+</script>
+
+</body>
+</html>
